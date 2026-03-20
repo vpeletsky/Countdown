@@ -6,7 +6,7 @@
 <title>Відлік</title>
 <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
 <style>
-:root{--bg:#0f172a;--surface:#1e293b;--surface2:#263044;--accent:#38bdf8;--accent2:#818cf8;--purple:#a78bfa;--text:#f1f5f9;--muted:#64748b;--border:rgba(148,163,184,0.1);--green:#34d399;--red:#f87171}
+:root{--bg:#0f172a;--surface:#1e293b;--surface2:#263044;--accent:#38bdf8;--accent2:#818cf8;--purple:#a78bfa;--text:#f1f5f9;--muted:#64748b;--border:rgba(148,163,184,0.1);--green:#34d399;--red:#f87171;--amber:#fbbf24}
 *{margin:0;padding:0;box-sizing:border-box}
 body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;display:flex;flex-direction:column;align-items:center;padding:0 0 48px}
 .header{width:100%;max-width:480px;padding:32px 24px 0}
@@ -32,13 +32,20 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
 .target-card{width:calc(100% - 48px);max-width:432px;background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:14px 18px;display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
 .target-date-text{font-family:'DM Mono',monospace;font-size:20px;font-weight:500;color:var(--purple)}
 .target-sub{font-size:12px;color:var(--muted);margin-bottom:2px}
+/* Interval selector */
+.interval-row{width:calc(100% - 48px);max-width:432px;display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:10px}
+.interval-btn{padding:12px 8px;border-radius:12px;font-family:'DM Sans',sans-serif;font-size:13px;font-weight:500;cursor:pointer;border:1px solid var(--border);background:var(--surface);color:var(--muted);transition:all .15s;text-align:center}
+.interval-btn.active{border-color:var(--accent);color:var(--accent);background:rgba(56,189,248,0.06)}
+.interval-btn .i-icon{font-size:16px;display:block;margin-bottom:4px}
+.interval-btn .i-label{font-size:12px}
+/* Notif status */
 .notif-status{width:calc(100% - 48px);max-width:432px;background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:14px 18px;display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
 .notif-dot{width:8px;height:8px;border-radius:50%;background:var(--muted);flex-shrink:0;transition:background .3s}
 .notif-dot.active{background:var(--green);box-shadow:0 0 6px var(--green)}
 .notif-info{flex:1;margin-left:12px}
 .notif-title-text{font-size:14px;font-weight:500}
 .notif-sub{font-size:12px;color:var(--muted);margin-top:2px}
-.time-badge{font-family:'DM Mono',monospace;font-size:14px;color:var(--accent);background:rgba(56,189,248,0.08);border:1px solid rgba(56,189,248,0.2);border-radius:8px;padding:4px 10px}
+.time-badge{font-family:'DM Mono',monospace;font-size:13px;color:var(--accent);background:rgba(56,189,248,0.08);border:1px solid rgba(56,189,248,0.2);border-radius:8px;padding:4px 10px;white-space:nowrap}
 .time-picker-row{width:calc(100% - 48px);max-width:432px;display:flex;gap:10px;margin-bottom:10px}
 .time-input{flex:1;background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:12px 16px;font-family:'DM Mono',monospace;font-size:20px;color:var(--text);text-align:center;outline:none;-webkit-appearance:none;transition:border-color .2s}
 .time-input:focus{border-color:var(--accent)}
@@ -49,6 +56,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
 .btn-primary{background:var(--accent);color:#0f172a;border-color:var(--accent)}
 .btn-secondary{background:var(--surface);color:var(--text);border-color:var(--border)}
 .btn-purple-style{background:var(--surface);color:var(--purple);border:1px solid rgba(167,139,250,0.3);border-radius:12px;padding:14px 16px;font-family:'DM Sans',sans-serif;font-size:14px;font-weight:500;cursor:pointer;width:calc(100% - 48px);max-width:432px;margin-bottom:10px;transition:all .15s}
+/* Modal */
 .modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:100;align-items:center;justify-content:center}
 .modal-overlay.show{display:flex}
 .modal{background:var(--surface2);border:1px solid var(--border);border-radius:20px;padding:28px 24px;width:calc(100% - 48px);max-width:340px}
@@ -66,6 +74,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
 </style>
 </head>
 <body>
+
 <div class="header">
   <div class="header-label">Зворотній відлік</div>
   <div class="header-title" id="headerTitle">До 24 грудня 2027</div>
@@ -97,11 +106,27 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
 <div class="divider"></div>
 <div class="section-head">Щоденне нагадування</div>
 
+<!-- Interval selector -->
+<div class="interval-row">
+  <div class="interval-btn active" id="int-daily" onclick="setInterval_('daily')">
+    <span class="i-icon">📅</span>
+    <span class="i-label">Щодня</span>
+  </div>
+  <div class="interval-btn" id="int-weekly" onclick="setInterval_('weekly')">
+    <span class="i-icon">📆</span>
+    <span class="i-label">Щотижня</span>
+  </div>
+  <div class="interval-btn" id="int-monthly" onclick="setInterval_('monthly')">
+    <span class="i-icon">🗓️</span>
+    <span class="i-label">Щомісяця</span>
+  </div>
+</div>
+
 <div class="notif-status">
   <div class="notif-dot" id="notifDot"></div>
   <div class="notif-info">
     <div class="notif-title-text" id="notifStatusText">Не налаштовано</div>
-    <div class="notif-sub" id="notifStatusSub">Встановіть час нижче</div>
+    <div class="notif-sub" id="notifStatusSub">Оберіть інтервал та час</div>
   </div>
   <div class="time-badge" id="timeBadge" style="display:none"></div>
 </div>
@@ -112,10 +137,11 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
   <input class="time-input" type="number" id="inputMin" min="0" max="59" placeholder="00">
 </div>
 <div class="btn-row">
-  <button class="btn btn-primary" onclick="scheduleNotification()">Зберегти час</button>
-  <button class="btn btn-secondary" onclick="sendTestNotification()">Тест сповіщення</button>
+  <button class="btn btn-primary" onclick="scheduleNotification()">Зберегти</button>
+  <button class="btn btn-secondary" onclick="sendTestNotification()">Тест</button>
 </div>
 
+<!-- Date modal -->
 <div class="modal-overlay" id="modalOverlay">
   <div class="modal">
     <div class="modal-title">Оберіть цільову дату</div>
@@ -134,9 +160,12 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
 
 <script>
 const NOTIF_KEY='countdown_notif', DATE_KEY='countdown_target';
+const INTERVAL_MS={daily:864e5, weekly:864e5*7, monthly:864e5*30};
+const INTERVAL_UA={daily:'щодня', weekly:'щотижня', monthly:'щомісяця'};
+
+function pad(n){return String(n).padStart(2,'0');}
 function loadTarget(){try{const s=JSON.parse(localStorage.getItem(DATE_KEY));if(s?.day&&s?.month&&s?.year)return s;}catch(e){}return{day:24,month:12,year:2027};}
 function getTargetDate(t){return new Date(t.year,t.month-1,t.day,0,0,0);}
-function pad(n){return String(n).padStart(2,'0');}
 
 function calcCountdown(){
   const t=loadTarget(),now=new Date(),target=getTargetDate(t),diffMs=target-now;
@@ -162,8 +191,18 @@ function calcCountdown(){
 }
 
 function updateClock(){const now=new Date();document.getElementById('liveClock').textContent=`${pad(now.getDate())}.${pad(now.getMonth()+1)}.${now.getFullYear()} ${pad(now.getHours())}:${pad(now.getMinutes())}:${pad(now.getSeconds())}`;}
-function showToast(msg){const el=document.getElementById('toast');el.textContent=msg;el.classList.add('show');setTimeout(()=>el.classList.remove('show'),3000);}
+function showToast(msg){const el=document.getElementById('toast');el.textContent=msg;el.classList.add('show');setTimeout(()=>el.classList.remove('show'),3200);}
 
+// ─── Interval ─────────────────────────────────────────────
+let currentInterval='daily';
+function setInterval_(val){
+  currentInterval=val;
+  ['daily','weekly','monthly'].forEach(k=>{
+    document.getElementById('int-'+k).classList.toggle('active',k===val);
+  });
+}
+
+// ─── Date modal ───────────────────────────────────────────
 function openModal(){const t=loadTarget();document.getElementById('mDay').value=t.day;document.getElementById('mMonth').value=t.month;document.getElementById('mYear').value=t.year;document.getElementById('modalOverlay').classList.add('show');}
 function closeModal(){document.getElementById('modalOverlay').classList.remove('show');}
 function saveDate(){
@@ -174,33 +213,76 @@ function saveDate(){
 }
 document.getElementById('modalOverlay').addEventListener('click',function(e){if(e.target===this)closeModal();});
 
-function buildNotif(){const t=loadTarget(),now=new Date(),total=Math.floor((getTargetDate(t)-now)/864e5);return{title:`📅 До ${pad(t.day)}.${pad(t.month)}.${t.year}`,body:`Залишилось ${total} днів`};}
-async function requestPermission(){if(!('Notification'in window)){showToast('Браузер не підтримує сповіщення');return false;}if(Notification.permission==='granted')return true;if(Notification.permission==='denied'){showToast('Сповіщення заблоковано у браузері');return false;}return(await Notification.requestPermission())==='granted';}
-async function sendTestNotification(){if(!await requestPermission())return;const{title,body}=buildNotif();new Notification(title,{body});showToast('✓ Тестове сповіщення надіслано');}
+// ─── Notifications ────────────────────────────────────────
+function buildNotif(){
+  const t=loadTarget(),now=new Date(),total=Math.floor((getTargetDate(t)-now)/864e5);
+  return{title:`📅 До ${pad(t.day)}.${pad(t.month)}.${t.year}`,body:`Залишилось ${total} днів`};
+}
+async function requestPermission(){
+  if(!('Notification'in window)){showToast('Браузер не підтримує сповіщення');return false;}
+  if(Notification.permission==='granted')return true;
+  if(Notification.permission==='denied'){showToast('Сповіщення заблоковано у браузері');return false;}
+  return(await Notification.requestPermission())==='granted';
+}
+async function sendTestNotification(){
+  if(!await requestPermission())return;
+  const{title,body}=buildNotif();
+  new Notification(title,{body});
+  showToast('✓ Тестове сповіщення надіслано');
+}
 
 let schedulerTimer=null;
-function msUntilNext(h,m){const now=new Date(),next=new Date();next.setHours(h,m,0,0);if(next<=now)next.setDate(next.getDate()+1);return next-now;}
-function startScheduler(h,m){if(schedulerTimer)clearTimeout(schedulerTimer);function fire(){if(Notification.permission==='granted'){const{title,body}=buildNotif();new Notification(title,{body});}schedulerTimer=setTimeout(fire,864e5);}schedulerTimer=setTimeout(fire,msUntilNext(h,m));}
+function msUntilNext(h,m){
+  const now=new Date(),next=new Date();
+  next.setHours(h,m,0,0);
+  if(next<=now)next.setDate(next.getDate()+1);
+  return next-now;
+}
+function startScheduler(h,m,interval){
+  if(schedulerTimer)clearTimeout(schedulerTimer);
+  const intervalMs=INTERVAL_MS[interval]||864e5;
+  function fire(){
+    if(Notification.permission==='granted'){
+      const{title,body}=buildNotif();
+      new Notification(title,{body});
+    }
+    schedulerTimer=setTimeout(fire,intervalMs);
+  }
+  schedulerTimer=setTimeout(fire,msUntilNext(h,m));
+}
 
 async function scheduleNotification(){
   const h=parseInt(document.getElementById('inputHour').value),m=parseInt(document.getElementById('inputMin').value);
   if(isNaN(h)||h<0||h>23||isNaN(m)||m<0||m>59){showToast('Введіть коректний час');return;}
   if(!await requestPermission())return;
-  localStorage.setItem(NOTIF_KEY,JSON.stringify({h,m,enabled:true}));
-  startScheduler(h,m);updateStatusUI(true,h,m);showToast(`✓ Нагадування щодня о ${pad(h)}:${pad(m)}`);
+  localStorage.setItem(NOTIF_KEY,JSON.stringify({h,m,interval:currentInterval,enabled:true}));
+  startScheduler(h,m,currentInterval);
+  updateStatusUI(true,h,m,currentInterval);
+  showToast(`✓ Нагадування ${INTERVAL_UA[currentInterval]} о ${pad(h)}:${pad(m)}`);
 }
 
-function updateStatusUI(enabled,h,m){
+function updateStatusUI(enabled,h,m,interval){
   document.getElementById('notifDot').classList.toggle('active',enabled);
   document.getElementById('notifStatusText').textContent=enabled?'Активно':'Не налаштовано';
-  document.getElementById('notifStatusSub').textContent=enabled?'Щоденне нагадування увімкнено':'Встановіть час нижче';
+  const sub=enabled?`${INTERVAL_UA[interval]||'щодня'} о ${pad(h)}:${pad(m)}`:'Оберіть інтервал та час';
+  document.getElementById('notifStatusSub').textContent=sub;
   const badge=document.getElementById('timeBadge');
   badge.style.display=enabled?'block':'none';
-  if(enabled){badge.textContent=`${pad(h)}:${pad(m)}`;document.getElementById('inputHour').value=h;document.getElementById('inputMin').value=pad(m);}
+  if(enabled){
+    const labels={daily:'день',weekly:'тиждень',monthly:'місяць'};
+    badge.textContent=`${pad(h)}:${pad(m)} · ${labels[interval]||'день'}`;
+    document.getElementById('inputHour').value=h;
+    document.getElementById('inputMin').value=pad(m);
+    setInterval_(interval||'daily');
+  }
 }
 
+// ─── Init ────────────────────────────────────────────────
 calcCountdown();updateClock();setInterval(updateClock,1000);setInterval(calcCountdown,60000);
-try{const s=JSON.parse(localStorage.getItem(NOTIF_KEY));if(s?.enabled){updateStatusUI(true,s.h,s.m);if(Notification.permission==='granted')startScheduler(s.h,s.m);}}catch(e){}
+try{
+  const s=JSON.parse(localStorage.getItem(NOTIF_KEY));
+  if(s?.enabled){updateStatusUI(true,s.h,s.m,s.interval||'daily');if(Notification.permission==='granted')startScheduler(s.h,s.m,s.interval||'daily');}
+}catch(e){}
 </script>
 </body>
 </html>
